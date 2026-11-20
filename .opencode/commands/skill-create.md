@@ -11,16 +11,25 @@ Analyze git history to generate skills: $ARGUMENTS
 ## Analysis Process
 
 ### Step 1: Gather Commit Data
+
+**Важно**: анализируй только коммиты текущей ветки (относительно базовой ветки), а не последние N коммитов всей истории — иначе в анализ попадут чужие ветки и смерженный код.
+
 ```bash
-# Recent commits
-git log --oneline -100
+# Определи базовую ветку (origin/HEAD или main/master)
+BASE_BRANCH=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')
+BASE_BRANCH=${BASE_BRANCH:-main}
 
-# Commits by file type
-git log --name-only --pretty=format: | sort | uniq -c | sort -rn
+# Коммиты только текущей ветки
+git log --oneline "$BASE_BRANCH"..HEAD
 
-# Most changed files
-git log --pretty=format: --name-only | sort | uniq -c | sort -rn | head -20
+# Коммиты по типам файлов (только текущая ветка)
+git log --name-only --pretty=format: "$BASE_BRANCH"..HEAD | sort | uniq -c | sort -rn
+
+# Наиболее изменяемые файлы (только текущая ветка)
+git log --pretty=format: --name-only "$BASE_BRANCH"..HEAD | sort | uniq -c | sort -rn | head -20
 ```
+
+Если базовая ветка называется иначе (например, `master` или `develop`), подставь её вместо `main`.
 
 ### Step 2: Identify Patterns
 
